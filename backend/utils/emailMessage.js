@@ -1,4 +1,4 @@
-const sendMail = (username, otp) => {
+const htmlOtpMessage = (username, otp) => {
   return `
     <div style="max-width: 400px; margin: 0 auto; padding: 20px; background-color: #f5f5f5; border: 1px solid #ddd;">
       <h2 style="text-align: center; font-family: sans-serif;">Your verification OTP</h2>
@@ -9,4 +9,4 @@ const sendMail = (username, otp) => {
   `;
 };
 
-module.exports = sendMail;
+module.exports = htmlOtpMessage;
