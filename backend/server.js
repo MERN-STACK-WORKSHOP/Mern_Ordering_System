@@ -17,7 +17,7 @@ const limiter = rateLimit({
 app.use(limiter);
 
 app.get("/", (req, res) => {
-  res.send("Hello World");
+  res.json({ message: "Welcome to the API" });
 });
 
 const PORT = process.env.PORT || 3000;
@@ -26,7 +26,7 @@ connectDB();
 
 app.use((err, req, res, next) => {
   console.log(err);
-  res.status(500).send("Internal Server Error");
+  res.status(500).json({ message: "Internal Server Error" });
 });
 
 app.listen(PORT, () => {
