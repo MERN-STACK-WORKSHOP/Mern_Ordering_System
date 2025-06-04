@@ -43,7 +43,6 @@ const register = async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: true,
-      sameSite: "strict",
       maxAge: 10 * 60 * 1000,
     });
 
@@ -56,6 +55,37 @@ const register = async (req, res) => {
   }
 };
 
+const verifyRegisterOtp = async (req, res) => {
+  try {
+    const { otp } = req.body;
+    const email = req.user.email;
+
+    const user = await User.findOne({
+      $and: [{ email }, { isVerified: false }],
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.otp !== otp || user.otpExpiresIn < Date.now()) {
+      return res.status(400).json({ message: "Invalid OTP or OTP expired" });
+    }
+
+    user.isVerified = true;
+    user.otp = null;
+    user.otpExpiresIn = null;
+
+    await user.save();
+
+    return res.status(200).json({ message: "User verified successfully" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   register,
+  verifyRegisterOtp,
 };
