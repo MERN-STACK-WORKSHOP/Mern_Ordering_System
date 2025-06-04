@@ -4,6 +4,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const rateLimit = require("express-rate-limit");
 const connectDB = require("./config/db");
+const userRoutes = require("./routes/user.route");
 
 app.use(express.json());
 app.use(cors());
@@ -15,6 +16,7 @@ const limiter = rateLimit({
 });
 
 app.use(limiter);
+app.use("/api/users", userRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to the API" });
@@ -30,5 +32,5 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server is running on port http://localhost:${PORT}`);
 });
