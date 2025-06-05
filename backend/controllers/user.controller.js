@@ -77,7 +77,7 @@ const verifyRegisterOtp = async (req, res) => {
     user.otpExpiresIn = null;
 
     await user.save();
-
+    res.clearCookie("token");
     return res.status(200).json({ message: "User verified successfully" });
   } catch (error) {
     console.log(error);
