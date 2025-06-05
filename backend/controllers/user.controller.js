@@ -6,6 +6,14 @@ const { transporter } = require("../config/mailer");
 const { jwtSecret } = require("../config/env");
 const htmlOtpMessage = require("../utils/emailMessage");
 
+const setCookie = (res, name = "token", token) => {
+  res.cookie(name, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 10 * 60 * 1000,
+  });
+};
+
 const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -40,11 +48,7 @@ const register = async (req, res) => {
       expiresIn: "10m",
     });
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 10 * 60 * 1000,
-    });
+    setCookie(res, "token", token);
 
     return res
       .status(201)
@@ -121,12 +125,7 @@ const loginUser = async (req, res) => {
       expiresIn: "1h",
     });
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 60 * 60 * 1000,
-    });
+    setCookie(res, "token", token);
 
     return res
       .status(200)
@@ -147,9 +146,47 @@ const logoutUser = async (req, res) => {
   }
 };
 
+const forgetPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const otp = generateOtp();
+    await transporter.sendMail({
+      from: "Ordering System <no-reply@orderingapp.com>",
+      to: user.email,
+      subject: "Password Reset OTP",
+      html: htmlOtpMessage(user.name, otp),
+    });
+
+    user.otp = otp;
+    user.otpExpiresIn = Date.now() + 10 * 60 * 1000;
+    await user.save();
+
+    const token = jwt.sign({ email }, jwtSecret, {
+      expiresIn: "10m",
+    });
+
+    setCookie(res, "forgetPasswordToken", token);
+
+    return res
+      .status(200)
+      .json({ message: "Password reset OTP sent successfully", token });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   register,
   verifyRegisterOtp,
   loginUser,
   logoutUser,
+  forgetPassword,
 };
