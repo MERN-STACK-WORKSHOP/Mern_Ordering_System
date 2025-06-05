@@ -10,7 +10,7 @@ const verifyToken = (req, res, next) => {
 
   jwt.verify(token, jwtSecret, (err, decoded) => {
     if (err) {
-      return res.status(403).json({ message: "Forbidden" });
+      return res.status(401).json({ message: "Unauthorized token" });
     }
     req.user = decoded;
     next();

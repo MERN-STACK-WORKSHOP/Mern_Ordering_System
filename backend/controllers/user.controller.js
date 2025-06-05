@@ -42,7 +42,7 @@ const register = async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
       maxAge: 10 * 60 * 1000,
     });
 
@@ -85,7 +85,71 @@ const verifyRegisterOtp = async (req, res) => {
   }
 };
 
+const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!user.isVerified) {
+      const otp = generateOtp();
+      await transporter.sendMail({
+        from: "Ordering System <no-reply@orderingapp.com>",
+        to: user.email,
+        subject: "Verification OTP",
+        html: htmlOtpMessage(user.name, otp),
+      });
+      user.otp = otp;
+      user.otpExpiresIn = Date.now() + 10 * 60 * 1000;
+      await user.save();
+      return res
+        .status(400)
+        .json({ message: "User not verified, check your email for OTP" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    const token = jwt.sign({ id: user._id }, jwtSecret, {
+      expiresIn: "1h",
+    });
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 60 * 60 * 1000,
+    });
+
+    return res
+      .status(200)
+      .json({ message: "User logged in successfully", token });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const logoutUser = async (req, res) => {
+  try {
+    res.clearCookie("token");
+    return res.status(200).json({ message: "User logged out successfully" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   register,
   verifyRegisterOtp,
+  loginUser,
+  logoutUser,
 };
