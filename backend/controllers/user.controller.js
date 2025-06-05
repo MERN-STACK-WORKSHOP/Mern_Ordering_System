@@ -183,10 +183,66 @@ const forgetPassword = async (req, res) => {
   }
 };
 
+const verifyForgetPasswordOtp = async (req, res) => {
+  try {
+    const { otp } = req.body;
+    const email = req.user.email;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.otp !== otp || user.otpExpiresIn < Date.now()) {
+      return res.status(400).json({ message: "Invalid OTP or OTP expired" });
+    }
+
+    user.otp = null;
+    user.otpExpiresIn = null;
+
+    await user.save();
+    return res.status(200).json({ message: "OTP verified successfully" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+    const email = req.user.email;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.otp) {
+      return res
+        .status(400)
+        .json({ message: "Forgot password OTP not verified" });
+    }
+
+    user.password = await bcrypt.hash(password, 10);
+
+    await user.save();
+    res.clearCookie("forgetPasswordToken");
+    return res.status(200).json({ message: "Password reset successfully" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   register,
   verifyRegisterOtp,
   loginUser,
   logoutUser,
   forgetPassword,
+  verifyForgetPasswordOtp,
+  resetPassword,
 };
