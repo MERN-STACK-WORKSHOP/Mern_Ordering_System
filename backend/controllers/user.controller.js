@@ -6,6 +6,14 @@ const { transporter } = require("../config/mailer");
 const { jwtSecret } = require("../config/env");
 const htmlOtpMessage = require("../utils/emailMessage");
 
+const setCookie = (res, name = "token", token) => {
+  res.cookie(name, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 10 * 60 * 1000,
+  });
+};
+
 const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -40,11 +48,7 @@ const register = async (req, res) => {
       expiresIn: "10m",
     });
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true,
-      maxAge: 10 * 60 * 1000,
-    });
+    setCookie(res, "token", token);
 
     return res
       .status(201)
@@ -77,8 +81,156 @@ const verifyRegisterOtp = async (req, res) => {
     user.otpExpiresIn = null;
 
     await user.save();
-
+    res.clearCookie("token");
     return res.status(200).json({ message: "User verified successfully" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!user.isVerified) {
+      const otp = generateOtp();
+      await transporter.sendMail({
+        from: "Ordering System <no-reply@orderingapp.com>",
+        to: user.email,
+        subject: "Verification OTP",
+        html: htmlOtpMessage(user.name, otp),
+      });
+      user.otp = otp;
+      user.otpExpiresIn = Date.now() + 10 * 60 * 1000;
+      await user.save();
+      return res
+        .status(400)
+        .json({ message: "User not verified, check your email for OTP" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    const token = jwt.sign({ id: user._id }, jwtSecret, {
+      expiresIn: "1h",
+    });
+
+    setCookie(res, "token", token);
+
+    return res
+      .status(200)
+      .json({ message: "User logged in successfully", token });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const logoutUser = async (req, res) => {
+  try {
+    res.clearCookie("token");
+    return res.status(200).json({ message: "User logged out successfully" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const forgetPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const otp = generateOtp();
+    await transporter.sendMail({
+      from: "Ordering System <no-reply@orderingapp.com>",
+      to: user.email,
+      subject: "Password Reset OTP",
+      html: htmlOtpMessage(user.name, otp),
+    });
+
+    user.otp = otp;
+    user.otpExpiresIn = Date.now() + 10 * 60 * 1000;
+    await user.save();
+
+    const token = jwt.sign({ email }, jwtSecret, {
+      expiresIn: "10m",
+    });
+
+    setCookie(res, "forgetPasswordToken", token);
+
+    return res
+      .status(200)
+      .json({ message: "Password reset OTP sent successfully", token });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const verifyForgetPasswordOtp = async (req, res) => {
+  try {
+    const { otp } = req.body;
+    const email = req.user.email;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.otp !== otp || user.otpExpiresIn < Date.now()) {
+      return res.status(400).json({ message: "Invalid OTP or OTP expired" });
+    }
+
+    user.otp = null;
+    user.otpExpiresIn = null;
+
+    await user.save();
+    return res.status(200).json({ message: "OTP verified successfully" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+    const email = req.user.email;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.otp) {
+      return res
+        .status(400)
+        .json({ message: "Forgot password OTP not verified" });
+    }
+
+    user.password = await bcrypt.hash(password, 10);
+
+    await user.save();
+    res.clearCookie("forgetPasswordToken");
+    return res.status(200).json({ message: "Password reset successfully" });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Internal Server Error" });
@@ -88,4 +240,9 @@ const verifyRegisterOtp = async (req, res) => {
 module.exports = {
   register,
   verifyRegisterOtp,
+  loginUser,
+  logoutUser,
+  forgetPassword,
+  verifyForgetPasswordOtp,
+  resetPassword,
 };
