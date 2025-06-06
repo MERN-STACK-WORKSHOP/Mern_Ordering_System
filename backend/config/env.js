@@ -9,6 +9,10 @@ const mailHost = process.env.MAIL_HOST;
 const mailPort = process.env.MAIL_PORT;
 const mailSecure = process.env.MAIL_SECURE;
 const jwtSecret = process.env.JWT_SECRET;
+const cloudName = process.env.CLOUD_NAME;
+const apiKey = process.env.API_KEY;
+const apiSecret = process.env.API_SECRET;
+const nodeEnv = process.env.NODE_ENV;
 
 module.exports = {
   mongoUri,
@@ -18,4 +22,8 @@ module.exports = {
   mailPort,
   mailSecure,
   jwtSecret,
+  cloudName,
+  apiKey,
+  apiSecret,
+  nodeEnv,
 };
