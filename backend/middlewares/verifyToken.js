@@ -1,18 +1,25 @@
 const jwt = require("jsonwebtoken");
 const { jwtSecret } = require("../config/env");
+const User = require("../models/user.schema");
 
 const verifyToken = (req, res, next) => {
   const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
-  console.log(req.headers);
+
   if (!token) {
     return res.status(401).json({ message: "Unauthorized token not provided" });
   }
 
-  jwt.verify(token, jwtSecret, (err, decoded) => {
+  jwt.verify(token, jwtSecret, async (err, decoded) => {
     if (err) {
       return res.status(401).json({ message: "Unauthorized token" });
     }
-    req.user = decoded;
+
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized user" });
+    }
+
+    req.user = user;
     next();
   });
 };
