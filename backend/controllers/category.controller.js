@@ -1,4 +1,5 @@
 const Category = require("../models/category.schema");
+const Product = require("../models/product.schema");
 
 /**
  * @desc Add a new category
@@ -14,8 +15,10 @@ const addCategory = async (req, res) => {
       return res.status(400).json({ message: "Name is required" });
     }
 
-    const isCategory = await Category.findOne({ name: name.toLowerCase() });
-    if (isCategory) {
+    const isCategoryExist = await Category.findOne({
+      name: name.toLowerCase(),
+    });
+    if (isCategoryExist) {
       return res.status(400).json({ message: "Category already exists" });
     }
 
@@ -65,4 +68,61 @@ const getCategoryById = async (req, res) => {
   }
 };
 
-module.exports = { addCategory, getAllCategories, getCategoryById };
+/**
+ * @desc Update a category by id where it is not associated with any products
+ * @route PUT /api/categories/:id
+ * @params { id: string }
+ * @body { name: string }
+ * @response { message: string }
+ * @access Private
+ */
+const updateCategory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ message: "Name is required" });
+    }
+
+    const isCategoryExist = await Category.findOne({
+      name: name.toLowerCase(),
+    });
+
+    if (isCategoryExist) {
+      return res.status(400).json({ message: "Category already exists" });
+    }
+
+    const category = await Category.findById(id);
+
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    const productCountForCategory = await Product.countDocuments({
+      category: id,
+    });
+
+    if (productCountForCategory > 0) {
+      return res.status(400).json({
+        message:
+          "Cannot update this category as it is associated with existing products. Alternatively, create a new category.",
+      });
+    }
+
+    category.name = name.toLowerCase();
+    await category.save();
+
+    return res.status(200).json({ message: "Category updated successfully" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+module.exports = {
+  addCategory,
+  getAllCategories,
+  getCategoryById,
+  updateCategory,
+};
