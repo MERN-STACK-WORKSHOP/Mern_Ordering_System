@@ -7,10 +7,11 @@ const {
   getCategoryById,
   updateCategory,
 } = require("../controllers/category.controller");
+const { verifyToken } = require("../middlewares/verifyToken");
 
-router.post("/", addCategory);
+router.post("/", verifyToken, addCategory);
 router.get("/", getAllCategories);
 router.get("/:id", getCategoryById);
-router.put("/:id", updateCategory);
+router.put("/:id", verifyToken, updateCategory);
 
 module.exports = router;
