@@ -25,11 +25,11 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.get("/seed", async (req, res) => {
-  // seedCategories();
-  await seedProducts();
-  res.json({ message: "Seeded successfully" });
-});
+// app.get("/seed", async (req, res) => {
+//   // seedCategories();
+//   await seedProducts();
+//   res.json({ message: "Seeded successfully" });
+// });
 
 connectDB();
 
