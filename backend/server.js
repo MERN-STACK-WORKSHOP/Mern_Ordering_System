@@ -6,6 +6,7 @@ const rateLimit = require("express-rate-limit");
 const connectDB = require("./config/db");
 const userRoutes = require("./routes/user.route");
 const { seedCategories, seedProducts } = require("./utils/seed");
+const categoryRoutes = require("./routes/category.route");
 
 app.use(express.json());
 app.use(cors());
@@ -18,6 +19,7 @@ const limiter = rateLimit({
 
 app.use(limiter);
 app.use("/api/users", userRoutes);
+app.use("/api/categories", categoryRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to the API" });
