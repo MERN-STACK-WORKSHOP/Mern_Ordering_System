@@ -5,7 +5,7 @@ const cookieParser = require("cookie-parser");
 const rateLimit = require("express-rate-limit");
 const connectDB = require("./config/db");
 const userRoutes = require("./routes/user.route");
-const { seedCategories, seedProducts } = require("./utils/seed");
+const { seedCategories, seedProducts, seedUsers } = require("./utils/seed");
 
 app.use(express.json());
 app.use(cors());
@@ -25,11 +25,14 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-// app.get("/seed", async (req, res) => {
-//   // seedCategories();
-//   await seedProducts();
-//   res.json({ message: "Seeded successfully" });
-// });
+app.get("/seed", async (req, res) => {
+  await Promise.all([
+    seedCategories(),
+    seedProducts(),
+    seedUsers(),
+  ]);
+  res.json({ message: "Seeded successfully" });
+});
 
 connectDB();
 
