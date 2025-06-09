@@ -5,7 +5,12 @@ const cookieParser = require("cookie-parser");
 const rateLimit = require("express-rate-limit");
 const connectDB = require("./config/db");
 const userRoutes = require("./routes/user.route");
-const { seedCategories, seedProducts, seedUsers } = require("./utils/seed");
+const {
+  seedCategories,
+  seedProducts,
+  seedUsers,
+  seedOrders,
+} = require("./utils/seed");
 
 app.use(express.json());
 app.use(cors());
@@ -26,11 +31,13 @@ app.get("/", (req, res) => {
 const PORT = process.env.PORT || 3000;
 
 app.get("/seed", async (req, res) => {
-  await Promise.all([
-    seedCategories(),
-    seedProducts(),
-    seedUsers(),
-  ]);
+  // First time seed and comment it to avoid seeding again if you using local database
+  // await Promise.all([
+  //   seedCategories(),
+  //   seedProducts(),
+  //   seedUsers(),
+  //   seedOrders(),
+  // ]);
   res.json({ message: "Seeded successfully" });
 });
 

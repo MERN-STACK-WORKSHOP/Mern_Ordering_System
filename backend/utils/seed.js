@@ -66,7 +66,6 @@ const seedProducts = async () => {
   }
 };
 
-
 /**
  * @desc This function seed dummy users for testing
  */
@@ -76,13 +75,15 @@ const seedUsers = async () => {
       {
         name: "Mohamed Ali",
         email: "mohamedali@gmail.com",
-        password: "$2b$10$8bLnnz77pYrMgIuyDvpxLenXuAS57vBEAYfk9V/A4ZQqdEoBOkRG2",// 12345678
+        password:
+          "$2b$10$8bLnnz77pYrMgIuyDvpxLenXuAS57vBEAYfk9V/A4ZQqdEoBOkRG2", // 12345678
         isVerified: true,
       },
       {
         name: "Alia Mohamed",
         email: "aliamoha@gmail.com",
-        password: "$2b$10$8bLnnz77pYrMgIuyDvpxLenXuAS57vBEAYfk9V/A4ZQqdEoBOkRG2",// 12345678
+        password:
+          "$2b$10$8bLnnz77pYrMgIuyDvpxLenXuAS57vBEAYfk9V/A4ZQqdEoBOkRG2", // 12345678
         isVerified: true,
       },
     ];
@@ -93,14 +94,42 @@ const seedUsers = async () => {
   }
 };
 
-
 /**
  * @dec This function seeds Order
  * @description This function seeds the database. products loaded from the database and generated orders
  */
 
+const seedOrders = async () => {
+  try {
+    const users = await User.find();
+    const products = await Product.find();
+    const ordersList = Array.from({ length: 6 }).map(() => {
+      const randomSlice = Math.floor(Math.random() * products.length);
+      const order = {
+        user: users[Math.floor(Math.random() * users.length)]._id,
+        items: products.slice(randomSlice, randomSlice + 3).map((product) => {
+          return {
+            product: product._id,
+            quantity: Math.floor(Math.random() * 3) + 1,
+            price: product.price,
+          };
+        }),
+        totalAmount: products
+          .slice(randomSlice, randomSlice + 3)
+          .reduce((total, product) => total + product.price, 0),
+      };
+      return order;
+    });
+    await Order.insertMany(ordersList);
+    console.log("Orders seeded successfully");
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 module.exports = {
   seedCategories,
   seedProducts,
   seedUsers,
+  seedOrders,
 };
