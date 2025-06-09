@@ -5,6 +5,7 @@ const cookieParser = require("cookie-parser");
 const rateLimit = require("express-rate-limit");
 const connectDB = require("./config/db");
 const userRoutes = require("./routes/user.route");
+const { seedCategories } = require("./utils/seed");
 
 app.use(express.json());
 app.use(cors());
@@ -23,6 +24,11 @@ app.get("/", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+
+app.get("/seed", (req, res) => {
+  seedCategories();
+  res.json({ message: "Seeded successfully" });
+});
 
 connectDB();
 
