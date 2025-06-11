@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-
+const { authorizeAbility } = require("../middlewares/authorize");
 const {
   addCategory,
   getAllCategories,
@@ -9,9 +9,19 @@ const {
 } = require("../controllers/category.controller");
 const { verifyToken } = require("../middlewares/verifyToken");
 
-router.post("/", verifyToken, addCategory);
+router.post(
+  "/",
+  verifyToken,
+  authorizeAbility("create", "Category"),
+  addCategory
+);
 router.get("/", getAllCategories);
 router.get("/:id", getCategoryById);
-router.put("/:id", verifyToken, updateCategory);
+router.put(
+  "/:id",
+  verifyToken,
+  authorizeAbility("update", "Category"),
+  updateCategory
+);
 
 module.exports = router;
