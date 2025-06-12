@@ -11,9 +11,6 @@ const Product = require("../models/product.schema");
 const addCategory = async (req, res) => {
   try {
     const { name } = req.body;
-    if (!name) {
-      return res.status(400).json({ message: "Name is required" });
-    }
 
     const isCategoryExist = await Category.findOne({
       name: name.toLowerCase(),
@@ -79,11 +76,7 @@ const getCategoryById = async (req, res) => {
 const updateCategory = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name } = req.body;
-
-    if (!name) {
-      return res.status(400).json({ message: "Name is required" });
-    }
+    const { name } = req.body;c
 
     const isCategoryExist = await Category.findOne({
       name: name.toLowerCase(),
