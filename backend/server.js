@@ -13,6 +13,9 @@ const {
 } = require("./utils/seed");
 const categoryRoutes = require("./routes/category.route");
 
+// Connect to database
+connectDB();
+
 app.use(express.json());
 app.use(cors());
 app.use(cookieParser());
@@ -24,6 +27,9 @@ const limiter = rateLimit({
 
 app.use(limiter);
 app.use("/api/users", userRoutes);
+const orderRoutes = require("./routes/order.routes");
+
+app.use("/api/orders", orderRoutes);
 app.use("/api/categories", categoryRoutes);
 
 app.get("/", (req, res) => {
