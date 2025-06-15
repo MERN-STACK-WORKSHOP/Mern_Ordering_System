@@ -26,7 +26,7 @@ const limiter = rateLimit({
 app.use(limiter);
 app.use("/api/users", userRoutes);
 app.use("/api/categories", categoryRoutes);
-app.use("/api/products",productCategory)
+app.use("/api/products", productCategory);
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to the API" });
 });
