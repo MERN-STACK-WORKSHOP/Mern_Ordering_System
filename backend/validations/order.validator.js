@@ -15,7 +15,6 @@ const orderItemValidation = Joi.object({
 
 const orderValidation = Joi.object({
   items: Joi.array().items(orderItemValidation).min(1).required(),
-  totalAmount: Joi.number().positive().required(),
   status: Joi.string().valid("pending", "paid", "failed").default("pending"),
 });
 
