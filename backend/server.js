@@ -12,7 +12,8 @@ const {
   seedOrders,
 } = require("./utils/seed");
 const categoryRoutes = require("./routes/category.route");
-const productCategory = require("./routes/product.route");
+const productRoutes = require("./routes/product.route");
+const orderRoutes = require("./routes/order.route");
 
 app.use(express.json());
 app.use(cors());
@@ -26,7 +27,8 @@ const limiter = rateLimit({
 app.use(limiter);
 app.use("/api/users", userRoutes);
 app.use("/api/categories", categoryRoutes);
-app.use("/api/products",productCategory)
+app.use("/api/products", productRoutes);
+app.use("/api/orders", orderRoutes);
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to the API" });
 });
