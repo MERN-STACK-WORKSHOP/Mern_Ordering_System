@@ -14,6 +14,7 @@ const {
 const categoryRoutes = require("./routes/category.route");
 const productRoutes = require("./routes/product.route");
 const orderRoutes = require("./routes/order.route");
+const paymentRoutes = require("./routes/payment.route");
 const upload = require("./middlewares/multer");
 const uploadImageFile = require("./utils/upload");
 const { verifyToken } = require("./middlewares/verifyToken");
@@ -33,6 +34,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/payments", paymentRoutes);
 
 app.post(
   "/api/uploads",
