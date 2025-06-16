@@ -1,8 +1,8 @@
 const Order = require("../models/order.schema");
 const createOrder = async (req, res) => {
   try {
-    const { items, totalAmount } = req.body;
-    const order = await Order.create({ items, totalAmount, user: req.user.id });
+    const { items } = req.body;
+    const order = await Order.create({ items, user: req.user.id });
     if (!order) {
       return res.status(400).json({ message: "Order not created" });
     }

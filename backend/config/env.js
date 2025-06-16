@@ -13,6 +13,9 @@ const cloudName = process.env.CLOUD_NAME;
 const apiKey = process.env.API_KEY;
 const apiSecret = process.env.API_SECRET;
 const nodeEnv = process.env.NODE_ENV;
+const merchantUid = process.env.MERCHANT_U_ID;
+const merchantApiUserId = process.env.MERCHANT_API_USER_ID;
+const merchantApiKey = process.env.MERCHANT_API_KEY;
 
 module.exports = {
   mongoUri,
@@ -26,4 +29,7 @@ module.exports = {
   apiKey,
   apiSecret,
   nodeEnv,
+  merchantUid,
+  merchantApiUserId,
+  merchantApiKey,
 };
