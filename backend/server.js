@@ -14,6 +14,10 @@ const {
 const categoryRoutes = require("./routes/category.route");
 const productRoutes = require("./routes/product.route");
 const orderRoutes = require("./routes/order.route");
+const upload = require("./middlewares/multer");
+const uploadImageFile = require("./utils/upload");
+const { verifyToken } = require("./middlewares/verifyToken");
+const { authorizeAbility } = require("./middlewares/authorize");
 
 app.use(express.json());
 app.use(cors());
@@ -29,6 +33,30 @@ app.use("/api/users", userRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
+
+app.post(
+  "/api/uploads",
+  verifyToken,
+  authorizeAbility("create", "Product"),
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      const { file } = req;
+      if (!file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+      const { mimetype, buffer, originalname } = file;
+      const result = await uploadImageFile({ mimetype, buffer, originalname });
+      return res
+        .status(200)
+        .json({ message: "File uploaded successfully", data: result });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+);
+
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to the API" });
 });
